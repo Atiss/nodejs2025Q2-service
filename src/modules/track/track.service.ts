@@ -3,11 +3,12 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { Track } from './entities/track.entity';
 import { validate } from 'uuid';
-import { tracks } from '../../db/database';
+import { favorites, tracks } from '../../db/database';
 
 @Injectable()
 export class TrackService {
   private tracks: Track[] = tracks;
+  private favouriteTracks: string[] = favorites.tracks;
   create(createTrackDto: CreateTrackDto) {
     if (!createTrackDto.name || !createTrackDto.duration) {
       throw new HttpException(
@@ -75,7 +76,11 @@ export class TrackService {
     if (trackIndex === -1) {
       throw new HttpException('track not found', HttpStatus.NOT_FOUND);
     }
-    this.tracks = this.tracks.filter((track) => track.id !== id);
+    this.tracks.splice(trackIndex, 1);
+    const favouriteIndex = this.favouriteTracks.indexOf(id);
+    if (favouriteIndex !== -1) {
+      this.favouriteTracks.splice(favouriteIndex, 1);
+    }
     return `track with id ${id} deleted successfully`;
   }
 
@@ -93,5 +98,9 @@ export class TrackService {
         track.albumId = null;
       }
     });
+  }
+
+  getByIds(ids: string[]): Track[] {
+    return this.tracks.filter((track) => ids.includes(track.id));
   }
 }

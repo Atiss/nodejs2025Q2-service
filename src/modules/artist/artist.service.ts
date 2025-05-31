@@ -4,11 +4,13 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { validate } from 'uuid';
 import { TrackService } from '../track/track.service';
 import { AlbumService } from '../albums/album.service';
-import { artists } from '../../db/database';
+import { artists, favorites } from '../../db/database';
+import { Artist } from './entities/artist.entity';
 
 @Injectable()
 export class ArtistService {
   private artists = artists;
+  private favouriteArtists: string[] = favorites.artists;
 
   constructor(
     private readonly trackService: TrackService,
@@ -74,9 +76,18 @@ export class ArtistService {
     if (index === -1) {
       throw new HttpException('artist not found', HttpStatus.NOT_FOUND);
     }
+
+    this.artists.splice(index, 1);
     this.trackService.deleteArtist(id);
     this.albumService.deleteArtist(id);
-    this.artists = this.artists.filter((artist) => artist.id !== id);
+    const favouriteIndex = this.favouriteArtists.indexOf(id);
+    if (favouriteIndex !== -1) {
+      this.favouriteArtists.splice(favouriteIndex, 1);
+    }
     return `artist with id ${id} deleted successfully`;
+  }
+
+  getByIds(ids: string[]): Artist[] {
+    return this.artists.filter((artist) => ids.includes(artist.id));
   }
 }

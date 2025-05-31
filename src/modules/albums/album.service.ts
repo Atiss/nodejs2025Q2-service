@@ -2,12 +2,13 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { validate } from 'uuid';
-import { albums } from '../../db/database';
+import { albums, favorites } from '../../db/database';
 import { TrackService } from '../track/track.service';
 
 @Injectable()
 export class AlbumService {
   private albums = albums;
+  private favouriteAlbums: string[] = favorites.albums;
 
   constructor(private readonly trackService: TrackService) {}
 
@@ -74,8 +75,12 @@ export class AlbumService {
     if (albumIndex === -1) {
       throw new HttpException('album not found', HttpStatus.NOT_FOUND);
     }
-    this.albums = this.albums.filter((album) => album.id !== id);
+    this.albums.splice(albumIndex, 1);
     this.trackService.deleteAlbum(id);
+    const favouriteIndex = this.favouriteAlbums.indexOf(id);
+    if (favouriteIndex !== -1) {
+      this.favouriteAlbums.splice(favouriteIndex, 1);
+    }
     return;
   }
 
@@ -85,5 +90,9 @@ export class AlbumService {
         album.artistId = null;
       }
     });
+  }
+
+  getByIds(ids: string[]): any[] {
+    return this.albums.filter((album) => ids.includes(album.id));
   }
 }

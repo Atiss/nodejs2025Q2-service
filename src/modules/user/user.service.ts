@@ -73,7 +73,7 @@ export class UserService {
     if (userIndex === -1) {
       throw new HttpException('user not found', HttpStatus.NOT_FOUND);
     }
-    this.users = this.users.filter((user) => user.id !== id);
+    this.users.splice(userIndex, 1);
     return `user with id ${id} deleted successfully`;
   }
 
