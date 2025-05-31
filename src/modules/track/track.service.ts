@@ -77,4 +77,12 @@ export class TrackService {
     this.tracks = this.tracks.filter((track) => track.id !== id);
     return `track with id ${id} deleted successfully`;
   }
+
+  deleteArtist(artistId: string) {
+    this.tracks.forEach((track) => {
+      if (track.artistId === artistId) {
+        track.artistId = null;
+      }
+    });
+  }
 }
