@@ -3,10 +3,11 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { Track } from './entities/track.entity';
 import { validate } from 'uuid';
+import { tracks } from '../../db/database';
 
 @Injectable()
 export class TrackService {
-  private tracks: Track[] = [];
+  private tracks: Track[] = tracks;
   create(createTrackDto: CreateTrackDto) {
     if (!createTrackDto.name || !createTrackDto.duration) {
       throw new HttpException(
@@ -82,6 +83,14 @@ export class TrackService {
     this.tracks.forEach((track) => {
       if (track.artistId === artistId) {
         track.artistId = null;
+      }
+    });
+  }
+
+  deleteAlbum(albumId: string) {
+    this.tracks.forEach((track) => {
+      if (track.albumId === albumId) {
+        track.albumId = null;
       }
     });
   }

@@ -3,12 +3,17 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { validate } from 'uuid';
 import { TrackService } from '../track/track.service';
+import { AlbumService } from '../albums/album.service';
+import { artists } from '../../db/database';
 
 @Injectable()
 export class ArtistService {
-  private artists = [];
+  private artists = artists;
 
-  constructor(private trackService: TrackService) {}
+  constructor(
+    private readonly trackService: TrackService,
+    private readonly albumService: AlbumService,
+  ) {}
   create(createArtistDto: CreateArtistDto) {
     if (!createArtistDto.name || createArtistDto.grammy === undefined) {
       throw new HttpException('name is required', HttpStatus.BAD_REQUEST);
@@ -70,6 +75,7 @@ export class ArtistService {
       throw new HttpException('artist not found', HttpStatus.NOT_FOUND);
     }
     this.trackService.deleteArtist(id);
+    this.albumService.deleteArtist(id);
     this.artists = this.artists.filter((artist) => artist.id !== id);
     return `artist with id ${id} deleted successfully`;
   }

@@ -3,10 +3,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { validate } from 'uuid';
+import { users } from '../../db/database';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [];
+  private users: User[] = users;
   create(createUserDto: CreateUserDto) {
     if (!createUserDto.login || !createUserDto.password) {
       throw new HttpException(
