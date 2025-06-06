@@ -11,28 +11,28 @@ services:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
-      - "5532:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - lib-network
 
-  lib-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: lib-service
-    depends_on:
-      - db
-    restart: always
-    ports:
-      - "4000:4000"
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DATABASE_USERNAME: ${DATABASE_USERNAME}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-    networks:
-      - lib-network
+#  lib-service:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: lib-service
+#    depends_on:
+#      - db
+#    restart: always
+#    ports:
+#      - "4000:4000"
+#    environment:
+#      DATABASE_URL: ${DATABASE_URL}
+#      DATABASE_USERNAME: ${DATABASE_USERNAME}
+#      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+#    networks:
+#      - lib-network
 
 volumes:
   pgdata:

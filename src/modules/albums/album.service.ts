@@ -2,17 +2,18 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { validate } from 'uuid';
-import { albums, favorites } from '../../db/database';
 import { TrackService } from '../track/track.service';
+import { Album, PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class AlbumService {
-  private albums = albums;
-  private favouriteAlbums: string[] = favorites.albums;
+  private prisma;
 
-  constructor(private readonly trackService: TrackService) {}
+  constructor(private readonly trackService: TrackService) {
+    this.prisma = new PrismaClient();
+  }
 
-  create(createAlbumDto: CreateAlbumDto) {
+  async create(createAlbumDto: CreateAlbumDto) {
     if (!createAlbumDto.name || !createAlbumDto.year) {
       throw new HttpException(
         'name and year are required',
@@ -25,33 +26,39 @@ export class AlbumService {
       artistId: createAlbumDto.artistId || null,
       year: createAlbumDto.year,
     };
-    this.albums.push(newAlbum);
+    await this.prisma.album.create({
+      data: newAlbum,
+    });
     return newAlbum;
   }
 
-  findAll() {
-    return this.albums;
+  async findAll() {
+    return await this.prisma.album.findMany();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!validate(id)) {
       throw new HttpException('invalid album id', HttpStatus.BAD_REQUEST);
     }
-    const foundAlbum = this.albums.find((album) => album.id === id);
+    const foundAlbum = await this.prisma.album.findUnique({
+      where: { id },
+    });
     if (!foundAlbum) {
       throw new HttpException('album not found', HttpStatus.NOT_FOUND);
     }
     return foundAlbum;
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto) {
+  async update(id: string, updateAlbumDto: UpdateAlbumDto) {
     if (!validate(id) || !updateAlbumDto.name || !updateAlbumDto.year) {
       throw new HttpException(
         'invalid album id or missing fields',
         HttpStatus.BAD_REQUEST,
       );
     }
-    const currentAlbum = this.albums.find((album) => album.id === id);
+    const currentAlbum = await this.prisma.album.findUnique({
+      where: { id },
+    });
     if (!currentAlbum) {
       throw new HttpException('album not found', HttpStatus.NOT_FOUND);
     }
@@ -64,35 +71,61 @@ export class AlbumService {
     if (updateAlbumDto.year) {
       currentAlbum.year = updateAlbumDto.year;
     }
+    await this.prisma.album.update({
+      where: { id },
+      data: currentAlbum,
+    });
     return currentAlbum;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!validate(id)) {
       throw new HttpException('invalid album id', HttpStatus.BAD_REQUEST);
     }
-    const albumIndex = this.albums.findIndex((album) => album.id === id);
-    if (albumIndex === -1) {
+    const foundAlbum = await this.prisma.album.findUnique({
+      where: { id },
+    });
+    if (!foundAlbum) {
       throw new HttpException('album not found', HttpStatus.NOT_FOUND);
     }
-    this.albums.splice(albumIndex, 1);
+    await this.prisma.album.delete({
+      where: { id },
+    });
     this.trackService.deleteAlbum(id);
-    const favouriteIndex = this.favouriteAlbums.indexOf(id);
-    if (favouriteIndex !== -1) {
-      this.favouriteAlbums.splice(favouriteIndex, 1);
-    }
+
+    this.deleteAlbumFromFavourites(id);
     return;
   }
 
-  deleteArtist(id: string) {
-    this.albums.forEach((album) => {
-      if (album.artistId === id) {
-        album.artistId = null;
-      }
+  private async deleteAlbumFromFavourites(id: string) {
+    const favourites = await this.prisma.favourite.findUnique({
+      where: { id: 'favourites' },
+    });
+    favourites.albums = favourites.albums.filter((album) => album !== id);
+    return this.prisma.favourite.update({
+      where: { id: 'favourites' },
+      data: {
+        albums: {
+          set: favourites.albums,
+        },
+      },
     });
   }
 
-  getByIds(ids: string[]): any[] {
-    return this.albums.filter((album) => ids.includes(album.id));
+  async deleteArtist(id: string) {
+    return await this.prisma.album.updateMany({
+      where: { artistId: id },
+      data: { artistId: null },
+    });
+  }
+
+  async getByIds(ids: string[]): Promise<Album[]> {
+    return await this.prisma.album.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
   }
 }

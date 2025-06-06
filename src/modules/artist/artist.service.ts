@@ -4,19 +4,19 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { validate } from 'uuid';
 import { TrackService } from '../track/track.service';
 import { AlbumService } from '../albums/album.service';
-import { artists, favorites } from '../../db/database';
-import { Artist } from './entities/artist.entity';
+import { Artist, PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class ArtistService {
-  private artists = artists;
-  private favouriteArtists: string[] = favorites.artists;
+  private prisma;
 
   constructor(
     private readonly trackService: TrackService,
     private readonly albumService: AlbumService,
-  ) {}
-  create(createArtistDto: CreateArtistDto) {
+  ) {
+    this.prisma = new PrismaClient();
+  }
+  async create(createArtistDto: CreateArtistDto) {
     if (!createArtistDto.name || createArtistDto.grammy === undefined) {
       throw new HttpException('name is required', HttpStatus.BAD_REQUEST);
     }
@@ -25,26 +25,30 @@ export class ArtistService {
       name: createArtistDto.name,
       grammy: createArtistDto.grammy,
     };
-    this.artists.push(newArtist);
+    await this.prisma.artist.create({
+      data: newArtist,
+    });
     return newArtist;
   }
 
-  findAll() {
-    return this.artists;
+  async findAll() {
+    return await this.prisma.artist.findMany();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!validate(id)) {
       throw new HttpException('invalid artist id', HttpStatus.BAD_REQUEST);
     }
-    const foundArtist = this.artists.find((artist) => artist.id === id);
+    const foundArtist = await this.prisma.artist.findUnique({
+      where: { id },
+    });
     if (!foundArtist) {
       throw new HttpException('artist not found', HttpStatus.NOT_FOUND);
     }
     return foundArtist;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
     if (
       !validate(id) ||
       !updateArtistDto.name ||
@@ -55,7 +59,9 @@ export class ArtistService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const currentArtist = this.artists.find((artist) => artist.id === id);
+    const currentArtist = await this.prisma.artist.findUnique({
+      where: { id },
+    });
     if (!currentArtist) {
       throw new HttpException('artist not found', HttpStatus.NOT_FOUND);
     }
@@ -65,29 +71,54 @@ export class ArtistService {
     if (updateArtistDto.grammy !== undefined) {
       currentArtist.grammy = updateArtistDto.grammy;
     }
+    await this.prisma.artist.update({
+      where: { id },
+      data: currentArtist,
+    });
     return currentArtist;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!validate(id)) {
       throw new HttpException('invalid artist id', HttpStatus.BAD_REQUEST);
     }
-    const index = this.artists.findIndex((artist) => artist.id === id);
-    if (index === -1) {
+    const foundArtist = await this.prisma.artist.findUnique({ where: { id } });
+    if (!foundArtist) {
       throw new HttpException('artist not found', HttpStatus.NOT_FOUND);
     }
 
-    this.artists.splice(index, 1);
+    await this.prisma.artist.delete({
+      where: { id },
+    });
+
     this.trackService.deleteArtist(id);
     this.albumService.deleteArtist(id);
-    const favouriteIndex = this.favouriteArtists.indexOf(id);
-    if (favouriteIndex !== -1) {
-      this.favouriteArtists.splice(favouriteIndex, 1);
-    }
+    await this.deleteArtistFromFavourites(id);
     return `artist with id ${id} deleted successfully`;
   }
 
-  getByIds(ids: string[]): Artist[] {
-    return this.artists.filter((artist) => ids.includes(artist.id));
+  private async deleteArtistFromFavourites(id: string) {
+    const favourites = await this.prisma.favourite.findUnique({
+      where: { id: 'favourites' },
+    });
+    favourites.artists = favourites.artists.filter((artist) => artist !== id);
+    return this.prisma.favourite.update({
+      where: { id: 'favourites' },
+      data: {
+        artists: {
+          set: favourites.artists,
+        },
+      },
+    });
+  }
+
+  async getByIds(ids: string[]): Promise<Artist[]> {
+    return await this.prisma.artist.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
   }
 }
