@@ -22,7 +22,7 @@ services:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile
-    image: atiss/nodejs2025q2-service:0.0.1
+    image: atiss/nodejs2025q2-service:0.0.2
     container_name: lib-service
     depends_on:
       - db
