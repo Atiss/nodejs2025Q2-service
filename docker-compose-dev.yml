@@ -19,11 +19,10 @@ services:
       - lib-network
 
   lib-service:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-    image: atiss/nodejs2025q2-service:0.0.1
-    container_name: lib-service
+    build:
+      context: .
+      dockerfile: DockerfileDev
+    container_name: lib-service-dev
     depends_on:
       - db
     restart: always
@@ -35,6 +34,9 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
     networks:
       - lib-network
+    volumes:
+      - ./src:/app/src
+      - /app/node_modules
 
 volumes:
   pgdata:
