@@ -34,8 +34,6 @@ npm install
 ## Environment variables
 create or copy a `.env` file in the root directory of the project from the template `.env.example`.
 
-```
-
 ## Running application
 
 ```
@@ -71,6 +69,12 @@ npm run lint
 
 ```
 npm run format
+```
+
+### Scan for vulnerabilities
+
+```
+npm run scan:vulnerabilities
 ```
 
 ### Debugging in VSCode

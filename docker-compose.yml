@@ -35,9 +35,13 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
     networks:
       - lib-network
+    volumes:
+      - ./logs:/app/logs
 
 volumes:
   pgdata:
+    driver: local
+  logs:
     driver: local
 networks:
     lib-network:
