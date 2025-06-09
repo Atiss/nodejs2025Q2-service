@@ -11,7 +11,7 @@ import * as fs from 'node:fs';
 async function bootstrap() {
   customLogger.log('Application is starting...');
 
-  const app = await NestFactory.create(AppModule, {logger: customLogger});
+  const app = await NestFactory.create(AppModule, { logger: customLogger });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   const filePath = join(__dirname, '..', 'doc', 'api.yaml');
@@ -46,4 +46,3 @@ function prepareLogging() {
 export const customLogger = prepareLogging();
 
 bootstrap();
-
