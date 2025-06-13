@@ -10,7 +10,7 @@ import { LoggingService } from '../services/logging.service';
 export class CustomExceptionFilter implements ExceptionFilter {
   constructor(private readonly loggingService: LoggingService) {}
 
-  catch(exception: unknown, host: any) {
+  catch(exception, host: any) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
@@ -28,6 +28,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
         statusCode: status,
         path: request.url,
         errorMessage,
+        message: exception.message,
       })}`,
       'CustomExceptionFilter',
     );

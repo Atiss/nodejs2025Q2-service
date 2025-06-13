@@ -11,6 +11,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpRequestInterceptor } from './interceptors/httpRequest.interceptor';
 import { CustomExceptionFilter } from './exceptionFilters/custom.exception-filter';
 import { ErrorHandlingService } from './services/error-handling.service';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ErrorHandlingService } from './services/error-handling.service';
     ArtistModule,
     AlbumModule,
     FavouriteModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
