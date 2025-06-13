@@ -6,6 +6,11 @@ import { TrackModule } from './modules/track/track.module';
 import { ArtistModule } from './modules/artist/artist.module';
 import { AlbumModule } from './modules/albums/album.module';
 import { FavouriteModule } from './modules/favourite/favourite.module';
+import { LoggingService } from './services/logging.service';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpRequestInterceptor } from './interceptors/httpRequest.interceptor';
+import { CustomExceptionFilter } from './exceptionFilters/custom.exception-filter';
+import { ErrorHandlingService } from './services/error-handling.service';
 
 @Module({
   imports: [
@@ -16,6 +21,18 @@ import { FavouriteModule } from './modules/favourite/favourite.module';
     FavouriteModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    LoggingService,
+    ErrorHandlingService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpRequestInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: CustomExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
