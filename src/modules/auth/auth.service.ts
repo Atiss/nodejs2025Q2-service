@@ -51,7 +51,7 @@ export class AuthService {
   }
 
   private async generateTokens(user: UserResponseDto) {
-    const payload = { sub: user.id, username: user.login };
+    const payload = { sub: user.id, userId: user.id, login: user.login };
     const accessToken = await this.jwtService.signAsync(payload);
     const refreshToken = await this.jwtService.signAsync(
       { ...payload, type: 'refresh' },
@@ -71,7 +71,7 @@ export class AuthService {
     if (!refreshToken) {
       throw new HttpException(
         'Refresh token is required',
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     }
     try {
@@ -79,7 +79,7 @@ export class AuthService {
       const dbUser = await this.userService.findOne(user.sub);
       return this.generateTokens(dbUser);
     } catch (error) {
-      throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid refresh token', HttpStatus.FORBIDDEN);
     }
   }
 }
