@@ -17,6 +17,9 @@ export class LoggingService extends ConsoleLogger {
   fileSizeLimit = parseInt(process.env.LOG_FILE_SIZE_LIMIT, 10) || 10;
   logLevel: LogLevel[] = this.getLogLevels();
 
+  errorLogFilePath = `${this.logDir}/error.log`;
+  errorLogFile: WriteStream;
+
   constructor() {
     super();
     this.prepareLogging();
@@ -30,6 +33,10 @@ export class LoggingService extends ConsoleLogger {
     this.logFile = createWriteStream(this.logFilePath, {
       flags: 'a',
     });
+
+    this.errorLogFile = createWriteStream(this.errorLogFilePath, {
+      flags: 'a',
+    });
   }
 
   private getLogLevels(): LogLevel[] {
@@ -39,11 +46,16 @@ export class LoggingService extends ConsoleLogger {
     return index >= 0 ? levels.slice(0, index + 1) : ['log'];
   }
 
-  private writeLog(level: string, message: string, context?: string) {
+  private writeLog(
+    level: string,
+    message: string,
+    context?: string,
+    file: WriteStream = this.logFile,
+  ) {
     this.fileSizeRotation();
     const timestamp = new Date().toISOString();
     const formattedMessage = `[${level}] ${timestamp} [${context || 'Application'}] ${message}`;
-    this.logFile.write(`${formattedMessage}\n`);
+    file.write(`${formattedMessage}\n`);
     const output = level === 'ERROR' ? process.stderr : process.stdout;
     output.write(`${formattedMessage}\n`);
   }
@@ -57,6 +69,7 @@ export class LoggingService extends ConsoleLogger {
   error(message: string, context?: string) {
     if (this.logLevel.includes('error')) {
       this.writeLog('ERROR', message, context);
+      this.writeLog('error', message, context, this.errorLogFile);
     }
   }
 

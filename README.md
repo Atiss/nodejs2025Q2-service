@@ -7,9 +7,6 @@
 - Docker - [Download & Install Docker](https://www.docker.com/products/docker-desktop)
 - Docker Compose - [Download & Install Docker Compose](https://docs.docker.com/compose/install/)
 
-## Environment variables
-create or copy a `.env` file in the root directory of the project from the template `.env.example`.
-
 ## Running the application locally with Docker
 ```
 docker-compose up --build -d
@@ -33,6 +30,9 @@ git clone git@github.com:Atiss/nodejs2025Q2-service.git
 ```
 npm install
 ```
+
+## Environment variables
+create or copy a `.env` file in the root directory of the project from the template `.env.example`.
 
 ## Running application
 
