@@ -22,7 +22,7 @@ services:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile
-    image: atiss/nodejs2025q2-service:0.0.2
+    image: atiss/nodejs2025q2-service:0.0.4
     container_name: lib-service
     depends_on:
       - db
@@ -33,6 +33,15 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       DATABASE_USERNAME: ${DATABASE_USERNAME}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      CRYPT_SALT: ${CRYPT_SALT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_SECRET_REFRESH_KEY: ${JWT_SECRET_REFRESH_KEY}
+      TOKEN_EXPIRE_TIME: ${TOKEN_EXPIRE_TIME}
+      TOKEN_REFRESH_EXPIRE_TIME: ${TOKEN_REFRESH_EXPIRE_TIME}
+
+      LOG_DIR: ${LOG_DIR:-/app/logs}
+      LOG_LEVEL: ${LOG_LEVEL:-log}
+      LOG_FILE_SIZE_LIMIT: ${LOG_FILE_SIZE_LIMIT:-100}
     networks:
       - lib-network
     volumes:
