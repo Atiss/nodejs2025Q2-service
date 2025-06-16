@@ -59,10 +59,12 @@ export class UserService {
     if (!currentUser) {
       throw new HttpException('user not found', HttpStatus.NOT_FOUND);
     }
-    if (
-      updateUserDto.oldPassword &&
-      updateUserDto.oldPassword !== currentUser.password
-    ) {
+
+    const isPasswordValid = await bcrypt.compare(
+      updateUserDto.oldPassword,
+      currentUser.password,
+    );
+    if (!isPasswordValid) {
       throw new HttpException(
         'old password is incorrect',
         HttpStatus.FORBIDDEN,
