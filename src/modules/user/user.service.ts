@@ -4,10 +4,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { validate } from 'uuid';
 import { PrismaClient, User } from '@prisma/client';
 import { UserResponseDto } from './dto/user-response.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
   private prisma;
+  private salt = parseInt(process.env.CRYPT_SALT, 10) || 10;
+
   constructor() {
     this.prisma = new PrismaClient();
   }
@@ -22,7 +25,7 @@ export class UserService {
     const newUser: User = {
       id: crypto.randomUUID(),
       login: createUserDto.login,
-      password: createUserDto.password,
+      password: await this.cryptPassword(createUserDto.password),
       version: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -92,5 +95,9 @@ export class UserService {
       createdAt: user.createdAt.getTime(),
       updatedAt: user.updatedAt.getTime(),
     };
+  }
+
+  private async cryptPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, this.salt);
   }
 }

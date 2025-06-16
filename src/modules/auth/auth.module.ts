@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import * as process from 'node:process';
+import { UserService } from '../user/user.service';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import * as process from 'node:process';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, UserService],
 })
 export class AuthModule {}
